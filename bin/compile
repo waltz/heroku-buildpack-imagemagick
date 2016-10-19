@@ -6,12 +6,17 @@ indent() {
 
 echo "-----> Install ImageMagick"
 
+# General build pack environment variables
 BUILD_DIR=$1
 CACHE_DIR=$2
+ENV_DIR=$3
 VENDOR_DIR="$BUILD_DIR/vendor"
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
 CACHE_FILE="$CACHE_DIR/imagemagick.tar.gz"
 
+# User config environment variables
+IMAGE_MAGICK_VERSION="$(cat $ENV_DIR/IMAGE_MAGICK_VERSION)"
+IMAGE_MAGICK_SHA="$(cat $ENV_DIR/IMAGE_MAGICK_SHA)"
 
 if [ ! -f $CACHE_FILE ]; then
   # install imagemagick
@@ -23,6 +28,9 @@ if [ ! -f $CACHE_FILE ]; then
 
   echo "-----> Downloading ImageMagick from $IMAGE_MAGICK_URL"
   wget $IMAGE_MAGICK_URL -P $BUILD_DIR | indent
+
+  echo "-----> Checking checksum of ImageMagick from $IMAGE_MAGICK_URL"
+  echo "$IMAGE_MAGICK_SHA  $BUILD_DIR/$IMAGE_MAGICK_FILE" | sha256sum -c || exit 1
 
   echo "-----> Extracting ImageMagick from $BUILD_DIR/$IMAGE_MAGICK_FILE"
   if [ ! -f $BUILD_DIR/$IMAGE_MAGICK_FILE ]; then
