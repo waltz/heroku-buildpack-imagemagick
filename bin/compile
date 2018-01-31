@@ -12,7 +12,7 @@ CACHE_DIR=$2
 ENV_DIR=$3
 VENDOR_DIR="$BUILD_DIR/vendor"
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
-CACHE_FILE="$CACHE_DIR/imagemagick.tar.gz"
+CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
 
 # User config environment variables
 IMAGE_MAGICK_VERSION="$(cat $ENV_DIR/IMAGE_MAGICK_VERSION)"
