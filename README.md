@@ -11,4 +11,4 @@ These are *not* environment variables, but rather files on disk, because of how 
 
 In some Auctionet projects, see `script/circleci/install_imagemagick.sh` for how to edit these files.
 
-The checksum is a sha256. This ensures that no one can modify the code you install on your servers, e.g. by hacking the code repository and uploading a version of ImageMagick that includes harmful code. You will of course have to ensure that the version you get the shasum for isn't already hacked :)
+The "SHA" is a SHA-256 checksum. This ensures that no one can modify the code you install on your servers, e.g. by hacking the code repository and uploading a version of ImageMagick that includes harmful code. You will of course have to ensure that the version you get the shasum for isn't already hacked :)
