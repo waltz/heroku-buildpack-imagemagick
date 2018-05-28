@@ -5,11 +5,10 @@ This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) fo
 
 ## How to set a specific version
 
-    heroku config:set IMAGE_MAGICK_HOST=http://www.imagemagick.org/download/releases/
-    heroku config:set IMAGE_MAGICK_VERSION=6.9.3-10
+Change IMAGE_MAGICK_HOST, IMAGE_MAGICK_VERSION and IMAGE_MAGICK_SHA.
 
-You also need to set a checksum sha (sha256). This ensures that no one can modify the code you install on your servers, e.g. by hacking the code repository and uploading a version of ImageMagick that includes harmful code.
+These are *not* environment variables, but rather files on disk, because of how buildpacks work (TODO: someone who knows more could explain in more detail).
 
-    heroku config:set IMAGE_MAGICK_SHA=e33f021c879f31703f9e620f578ccf7d221a34941589da4bbe967b16a814336a
+In some Auctionet projects, see `script/circleci/install_imagemagick.sh` for how to edit these files.
 
-You will of course have to ensure that the version you get the shasum for isn't already hacked :)
+The checksum is a sha256. This ensures that no one can modify the code you install on your servers, e.g. by hacking the code repository and uploading a version of ImageMagick that includes harmful code. You will of course have to ensure that the version you get the shasum for isn't already hacked :)
