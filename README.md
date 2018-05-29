@@ -11,7 +11,7 @@ On heroku you configure this buildpack like this:
     heroku config:set IMAGE_MAGICK_VERSION=6.9.3-10
     heroku config:set IMAGE_MAGICK_SHA=e33f021c879f31703f9e620f578ccf7d221a34941589da4bbe967b16a814336a
 
-If you use this buildpack directly (e.g. in CI) you have to create files on disk that `bin/compile` can read. They have the same names as the enviornment variables and the same contents. Look at the script to see what it expects.
+If you use this buildpack directly (e.g. in CI) you have to create files on disk that `bin/compile` can read. They have the same names as the environment variables and the same contents. Look at the script to see what it expects.
 
 In some Auctionet projects, see `script/circleci/install_imagemagick.sh` for how to edit these files.
 
