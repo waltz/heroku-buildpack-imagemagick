@@ -18,7 +18,8 @@ IMAGE_MAGICK_VERSION="$(cat $ENV_DIR/IMAGE_MAGICK_VERSION)"
 IMAGE_MAGICK_SHA="$(cat $ENV_DIR/IMAGE_MAGICK_SHA)"
 IMAGE_MAGICK_HOST="$(cat $ENV_DIR/IMAGE_MAGICK_HOST)"
 
-CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
+# Bump this cache version if you e.g. change build script flags.
+CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION-v1.tar.gz"
 
 if [ ! -f $CACHE_FILE ]; then
   # install imagemagick
