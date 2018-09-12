@@ -47,7 +47,7 @@ if [ ! -f $CACHE_FILE ]; then
 
   # Install Ghostscript, required to e.g. convert PDF to PNG.
   echo "-----> Downloading Ghostscript from $GHOSTSCRIPT_URL"
-  wget $GHOSTSCRIPT_URL -p $BUILD_DIR | indent
+  wget $GHOSTSCRIPT_URL -P $BUILD_DIR | indent
 
   echo "-----> Checking checksum of Ghostscript from $GHOSTSCRIPT_URL"
   echo "$GHOSTSCRIPT_SHA  $BUILD_DIR/$GHOSTSCRIPT_FILE" | sha512sum -c -
