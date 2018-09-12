@@ -43,6 +43,7 @@ if [ ! -f $CACHE_FILE ]; then
   GHOSTSCRIPT_DIR="ghostscript-$GHOSTSCRIPT_VERSION"
   GHOSTSCRIPT_HOST="${GHOSTSCRIPT_HOST:-https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download}"
   GHOSTSCRIPT_URL="$GHOSTSCRIPT_HOST/gs$GHOSTSCRIPT_SHORT_VERSION/$GHOSTSCRIPT_FILE"
+  GHOSTSCRIPT_SHA="${GHOSTSCRIPT_SHA:-a85050c9604d7671d58e2415682482fb60852cb4de746cd07ee5a51585507f73f3ae61d6b52764230e333fb45d6a31666bf3cbad77215d997b6a5c3c64cf71cd}"
 
   # Install Ghostscript, required to e.g. convert PDF to PNG.
   echo "-----> Downloading Ghostscript from $GHOSTSCRIPT_URL"
