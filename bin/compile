@@ -18,7 +18,12 @@ IMAGE_MAGICK_VERSION="$(cat $ENV_DIR/IMAGE_MAGICK_VERSION)"
 IMAGE_MAGICK_SHA="$(cat $ENV_DIR/IMAGE_MAGICK_SHA)"
 IMAGE_MAGICK_HOST="$(cat $ENV_DIR/IMAGE_MAGICK_HOST)"
 
-CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION.tar.gz"
+GHOSTSCRIPT_VERSION="$(cat $ENV_DIR/GHOSTSCRIPT_VERSION)"
+GHOSTSCRIPT_SHORT_VERSION="$(cat $ENV_DIR/GHOSTSCRIPT_SHORT_VERSION)"
+GHOSTSCRIPT_SHA="$(cat $ENV_DIR/GHOSTSCRIPT_SHA)"
+GHOSTSCRIPT_HOST="$(cat $ENV_DIR/GHOSTSCRIPT_HOST)"
+
+CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION-with-gs-$GHOSTSCRIPT_VERSION.tar.gz"
 
 if [ ! -f $CACHE_FILE ]; then
   # install imagemagick
@@ -27,6 +32,30 @@ if [ ! -f $CACHE_FILE ]; then
   IMAGE_MAGICK_DIR="ImageMagick-$IMAGE_MAGICK_VERSION"
   # SSL cert used on imagemagick not recognized by heroku.
   IMAGE_MAGICK_URL="$IMAGE_MAGICK_HOST/$IMAGE_MAGICK_FILE"
+
+  GHOSTSCRIPT_SHORT_VERSION="${GHOSTSCRIPT_SHORT_VERSION:924}"
+  GHOSTSCRIPT_VERSION="${GHOSTSCRIPT_VERSION:-9.24}"
+  GHOSTSCRIPT_FILE="ghostscript$GHOSTSCRIPT_VERSION.tar.gz"
+  GHOSTSCRIPT_DIR="ghostscript$GHOSTSCRIPT_VERSION"
+  GHOSTSCRIPT_HOST="${GHOSTSCRIPT_HOST:https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download}"
+  GHOSTSCRIPT_URL="$GHOSTSCRIPT_HOST/gs$GHOSTSCRIPT_SHORT_VERSION/$GHOSTSCRIPT_FILE"
+
+  # Install Ghostscript, required to e.g. convert PDF to PNG.
+  echo "-----> Downloading Ghostscript from $GHOSTSCRIPT_URL"
+  wget $GHOSTSCRIPT_URL -p $BUILD_DIR | indent
+
+  echo "-----> Checking checksum of Ghostscript from $GHOSTSCRIPT_URL"
+  echo "$GHOSTSCRIPT_SHA  $BUILD_DIR/$GHOSTSCRIPT_FILE" | sha512sum -c - || exit 1
+
+  echo "-----> Extracting Ghostscript from $BUILD_DIR/$GHOSTSCRIPT_FILE"
+  tar xfz $BUILD_DIR/$GHOSTSCRIPT_FILE | indent
+
+  echo "-----> Building Ghostscript"
+  cd $GHOSTSCRIPT_DIR
+  ./configure --prefix=$INSTALL_DIR
+  make && make install
+  cd ..
+  rm -rf $GHOSTSCRIPT_DIR
 
   echo "-----> Downloading ImageMagick from $IMAGE_MAGICK_URL"
   wget $IMAGE_MAGICK_URL -P $BUILD_DIR | indent
