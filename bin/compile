@@ -6,6 +6,21 @@ indent() {
   sed -u 's/^/       /'
 }
 
+export_env_dir() {
+  env_dir=$1
+  whitelist_regex=${2:-''}
+  blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
+  if [ -d "$env_dir" ]; then
+    for e in $(ls $env_dir); do
+      echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
+      export "$e=$(cat $env_dir/$e)"
+      :
+    done
+  fi
+}
+
+export_env_dir "$ENV_DIR"
+
 echo "-----> Install ImageMagick"
 
 # General build pack environment variables
@@ -16,74 +31,79 @@ VENDOR_DIR="$BUILD_DIR/vendor"
 INSTALL_DIR="$VENDOR_DIR/imagemagick"
 
 # User config environment variables
-IMAGE_MAGICK_VERSION="$(cat $ENV_DIR/IMAGE_MAGICK_VERSION)"
-IMAGE_MAGICK_SHA="$(cat $ENV_DIR/IMAGE_MAGICK_SHA)"
-IMAGE_MAGICK_HOST="$(cat $ENV_DIR/IMAGE_MAGICK_HOST)"
-
-if [ -f $ENV_DIR/GHOSTSCRIPT_VERSION ]; then
-  GHOSTSCRIPT_VERSION="$(cat $ENV_DIR/GHOSTSCRIPT_VERSION)"
-  GHOSTSCRIPT_SHORT_VERSION="$(cat $ENV_DIR/GHOSTSCRIPT_SHORT_VERSION)"
-  GHOSTSCRIPT_SHA="$(cat $ENV_DIR/GHOSTSCRIPT_SHA)"
-  GHOSTSCRIPT_HOST="$(cat $ENV_DIR/GHOSTSCRIPT_HOST)"
-fi
-
-CACHE_FILE="$CACHE_DIR/imagemagick-$IMAGE_MAGICK_VERSION-with-gs-$GHOSTSCRIPT_VERSION.tar.gz"
+CACHE_FILE="$CACHE_DIR/imagemagick.tar.gz"
 
 if [ ! -f $CACHE_FILE ]; then
-  # install imagemagick
-  IMAGE_MAGICK_VERSION="${IMAGE_MAGICK_VERSION:-6.9.3-10}"
-  IMAGE_MAGICK_FILE="ImageMagick-$IMAGE_MAGICK_VERSION.tar.xz"
-  IMAGE_MAGICK_DIR="ImageMagick-$IMAGE_MAGICK_VERSION"
-  # SSL cert used on imagemagick not recognized by heroku.
-  IMAGE_MAGICK_URL="$IMAGE_MAGICK_HOST/$IMAGE_MAGICK_FILE"
 
-  GHOSTSCRIPT_SHORT_VERSION="${GHOSTSCRIPT_SHORT_VERSION:-924}"
-  GHOSTSCRIPT_VERSION="${GHOSTSCRIPT_VERSION:-9.24}"
-  GHOSTSCRIPT_FILE="ghostscript-$GHOSTSCRIPT_VERSION.tar.gz"
-  GHOSTSCRIPT_DIR="ghostscript-$GHOSTSCRIPT_VERSION"
-  GHOSTSCRIPT_HOST="${GHOSTSCRIPT_HOST:-https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download}"
-  GHOSTSCRIPT_URL="$GHOSTSCRIPT_HOST/gs$GHOSTSCRIPT_SHORT_VERSION/$GHOSTSCRIPT_FILE"
-  GHOSTSCRIPT_SHA="${GHOSTSCRIPT_SHA:-a85050c9604d7671d58e2415682482fb60852cb4de746cd07ee5a51585507f73f3ae61d6b52764230e333fb45d6a31666bf3cbad77215d997b6a5c3c64cf71cd}"
+  # ghostscript
+  echo "-----> Cloning ghostscript repo at the desired tag (${GHOSTSCRIPT_VERSION:-ghostscript-9.26})"
+  git clone -b "${GHOSTSCRIPT_VERSION:-ghostscript-9.26}" --single-branch --depth 1 git://git.ghostscript.com/ghostpdl.git | indent
+  cd ghostpdl
 
-  # Install Ghostscript, required to e.g. convert PDF to PNG.
-  echo "-----> Downloading Ghostscript from $GHOSTSCRIPT_URL"
-  wget $GHOSTSCRIPT_URL -P $BUILD_DIR | indent
-
-  echo "-----> Checking checksum of Ghostscript from $GHOSTSCRIPT_URL"
-  echo "$GHOSTSCRIPT_SHA  $BUILD_DIR/$GHOSTSCRIPT_FILE" | sha512sum -c -
-
-  echo "-----> Extracting Ghostscript from $BUILD_DIR/$GHOSTSCRIPT_FILE"
-  tar xfz $BUILD_DIR/$GHOSTSCRIPT_FILE | indent
-
-  echo "-----> Building Ghostscript"
-  cd $GHOSTSCRIPT_DIR
-  ./configure --prefix=$INSTALL_DIR
-  make && make install
+  echo "-----> Building ghostscript"
+  ./autogen.sh | indent
+  ./configure --prefix=$INSTALL_DIR | indent
+  make | indent
+  make install | indent
   cd ..
-  rm -rf $GHOSTSCRIPT_DIR
 
-  echo "-----> Downloading ImageMagick from $IMAGE_MAGICK_URL"
-  wget $IMAGE_MAGICK_URL -P $BUILD_DIR | indent
+  # libde265
+  echo "-----> Cloning libde265 repo"
+  git clone https://github.com/strukturag/libde265.git | indent
+  cd libde265
 
-  echo "-----> Checking checksum of ImageMagick from $IMAGE_MAGICK_URL"
-  echo "$IMAGE_MAGICK_SHA  $BUILD_DIR/$IMAGE_MAGICK_FILE" | sha256sum -c
+  echo "-----> Reset libde265 to desired tag/commit (${LIBDE265_VERSION:-v1.0.3})"
+  git reset --hard "${LIBDE265_VERSION:-v1.0.3}" | indent
 
-  echo "-----> Extracting ImageMagick from $BUILD_DIR/$IMAGE_MAGICK_FILE"
-  if [ ! -f $BUILD_DIR/$IMAGE_MAGICK_FILE ]; then
-    echo "Error: Unable to download ImageMagick" | indent
-    ls $BUILD_DIR | indent
-    exit 1;
-  fi
-  tar xvf $BUILD_DIR/$IMAGE_MAGICK_FILE | indent
+  echo "-----> Building libde265"
+  ./autogen.sh | indent
+  ./configure --prefix=$INSTALL_DIR | indent
+  make | indent
+  make install | indent
+  cd ..
+
+  # libheif
+  echo "-----> Cloning libheif repo"
+  git clone https://github.com/strukturag/libheif.git | indent
+  cd libheif
+
+  echo "-----> Reset libheif to desired tag/commit (${LIBHEIF_VERSION:-v1.3.2})"
+  git reset --hard "${LIBHEIF_VERSION:-v1.3.2}" | indent
+
+  echo "-----> Building libheif"
+  ./autogen.sh | indent
+  ./configure --prefix=$INSTALL_DIR
+  make | indent
+  make install | indent
+  cd ..
+
+  # ImageMagick
+  echo "-----> Cloning ImageMagick repo"
+  git clone https://github.com/ImageMagick/ImageMagick.git | indent
+  cd ImageMagick
+
+  echo "-----> Reset to desired tag/commit (${IMAGEMAGICK_VERSION:-7.0.8-27)}"
+  git reset --hard "${IMAGEMAGICK_VERSION:-7.0.8-27}" | indent
+
+  echo "-----> Set environment"
+  export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
+  export LDFLAGS="-L$INSTALL_DIR/lib"
+  export CPPFLAGS="-I$INSTALL_DIR/include/libheif"
 
   echo "-----> Building ImageMagick"
-  cd $IMAGE_MAGICK_DIR
-  export CPPFLAGS="-I$INSTALL_DIR/include"
-  export LDFLAGS="-L$INSTALL_DIR/lib"
-  ./configure --with-zero-configuration --prefix=$INSTALL_DIR
-  make && make install
+  ./configure --enable-shared=no --enable-static=yes --with-zero-configuration --prefix=$INSTALL_DIR | indent
+  make | indent
+  make install | indent
   cd ..
-  rm -rf $IMAGE_MAGICK_DIR
+
+  # copy needed libraries
+  echo "-----> Copying needed libraries"
+  cp /usr/lib/libgvc.so.6 $INSTALL_DIR/lib/libgvc.so.6
+  cp /usr/lib/libcgraph.so.6 $INSTALL_DIR/lib/libcgraph.so.6
+
+  cp /usr/lib/x86_64-linux-gnu/libxcb.so.1 $INSTALL_DIR/lib/libxcb.so.1
+  cp /usr/lib/libpathplan.so.4 $INSTALL_DIR/lib/libpathplan.so.4
+  cp /usr/lib/libcdt.so.5 $INSTALL_DIR/lib/libcdt.so.5
 
   # cache for future deploys
   echo "-----> Caching ImageMagick installation"
