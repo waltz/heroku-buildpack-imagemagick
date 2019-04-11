@@ -98,12 +98,12 @@ if [ ! -f $CACHE_FILE ]; then
 
   # copy needed libraries
   echo "-----> Copying needed libraries"
-  cp /usr/lib/libgvc.so.6 $INSTALL_DIR/lib/libgvc.so.6
-  cp /usr/lib/libcgraph.so.6 $INSTALL_DIR/lib/libcgraph.so.6
+  #cp /usr/lib/libgvc.so.6 $INSTALL_DIR/lib/libgvc.so.6
+  #cp /usr/lib/libcgraph.so.6 $INSTALL_DIR/lib/libcgraph.so.6
 
   cp /usr/lib/x86_64-linux-gnu/libxcb.so.1 $INSTALL_DIR/lib/libxcb.so.1
-  cp /usr/lib/libpathplan.so.4 $INSTALL_DIR/lib/libpathplan.so.4
-  cp /usr/lib/libcdt.so.5 $INSTALL_DIR/lib/libcdt.so.5
+  #cp /usr/lib/libpathplan.so.4 $INSTALL_DIR/lib/libpathplan.so.4
+  #cp /usr/lib/libcdt.so.5 $INSTALL_DIR/lib/libcdt.so.5
 
   # cache for future deploys
   echo "-----> Caching ImageMagick installation"
